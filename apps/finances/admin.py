@@ -1,3 +1,8 @@
 from django.contrib import admin
+from .models import BillingPeriod, RepairFinance, ExpenseCategory, Expense
 
-# Register your models here.
+admin.site.register(BillingPeriod)
+admin.site.register(RepairFinance)
+admin.site.register(ExpenseCategory)
+admin.site.register(Expense)
+
