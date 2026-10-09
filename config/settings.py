@@ -47,7 +47,6 @@ INSTALLED_APPS = [
     'apps.devices',
     'apps.repairs',
     'apps.finances',
-    'rest_framework',
 ]
 
 MIDDLEWARE = [
