@@ -16,27 +16,17 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
-
+from django.contrib.auth import views as auth_views
+from apps.repairs.views import dashboard, profile
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('api/', include('apps.customers.urls')),
-    path("api/", include("apps.devices.urls")),
-    path("api/", include("apps.repairs.urls")),
-     path(
-        "api/token/",
-        TokenObtainPairView.as_view(),
-        name="token_obtain_pair"
-    ),
-
-    path(
-        "api/token/refresh/",
-        TokenRefreshView.as_view(),
-        name="token_refresh"
-    ),
+    path('', dashboard, name='dashboard'),
+    path('login/', auth_views.LoginView.as_view(template_name='login.html'), name='login'),
+    path('logout/', auth_views.LogoutView.as_view(next_page='login', http_method_names=['get', 'post']), name='logout'),
+    path('perfil/', profile, name='profile'),
+    path('reparaciones/', include('apps.repairs.urls')),
+    path('clientes/', include('apps.customers.urls')),
+    path('equipos/', include('apps.devices.urls')),
+    path('finanzas/', include('apps.finances.urls')),
 ]
-

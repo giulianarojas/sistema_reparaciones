@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Configurar Período de Facturación</h1>
+        <a href="{% url 'finance_dashboard' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Configurar Límite de Monotributo</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="alert alert-info">
+                    <i class="fas fa-info-circle"></i> 
+                    Configure el período de facturación y el límite establecido por ARCA para su categoría de monotributo.
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Fecha de Inicio</label>
+                            <input type="date" class="form-control" name="start_date" required>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Fecha de Fin</label>
+                            <input type="date" class="form-control" name="end_date" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Límite de Facturación ($)</label>
+                    <input type="number" step="0.01" class="form-control" name="billing_limit" required>
+                    <small class="form-text text-muted">Ingrese el monto máximo permitido para facturar en este período</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Notas</label>
+                    <textarea class="form-control" name="notes" rows="3"></textarea>
+                </div>
+
+                <button type="submit" class="btn btn-info">
+                    <i class="fas fa-save"></i> Guardar Configuración
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,15 +1,7 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
+from . import views
 
-from .views import (
-    DeviceTypeViewSet,
-    BrandViewSet,
-    DeviceViewSet
-)
-
-router = DefaultRouter()
-
-router.register(r"device-types", DeviceTypeViewSet)
-router.register(r"brands", BrandViewSet)
-router.register(r"devices", DeviceViewSet)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('', views.device_list, name='device_list'),
+    path('<int:device_id>/', views.device_detail, name='device_detail'),
+]

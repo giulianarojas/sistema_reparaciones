@@ -1,0 +1,217 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Finanzas</h1>
+        <div>
+            <a href="{% url 'export_finances_csv' %}" class="d-none d-sm-inline-block btn btn-sm btn-success shadow-sm">
+                <i class="fas fa-file-csv fa-sm text-white-50"></i> Exportar CSV
+            </a>
+            <a href="{% url 'expense_create' %}" class="d-none d-sm-inline-block btn btn-sm btn-warning shadow-sm">
+                <i class="fas fa-receipt fa-sm text-white-50"></i> Nuevo Gasto
+            </a>
+            <a href="{% url 'billing_period_create' %}" class="d-none d-sm-inline-block btn btn-sm btn-info shadow-sm">
+                <i class="fas fa-cog fa-sm text-white-50"></i> Configurar Período
+            </a>
+        </div>
+    </div>
+
+    <!-- Tarjetas de Resumen -->
+    <div class="row">
+        <!-- Ingresos Totales -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                                Ingresos Totales</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_income|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gastos Totales -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-danger shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">
+                                Gastos Totales</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ total_expenses|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ganancia -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                                Ganancia</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ profit|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-chart-line fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pendiente de Cobro -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                                Pendiente de Cobro</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">${{ pending_payment|floatformat:2 }}</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-clock fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Límite de Facturación -->
+    {% if latest_billing %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-info">Límite de Facturación Monotributo</h6>
+        </div>
+        <div class="card-body">
+            <div class="row no-gutters align-items-center">
+                <div class="col-md-6">
+                    <p><strong>Período:</strong> {{ latest_billing.start_date|date:"d/m/Y" }} - {{ latest_billing.end_date|date:"d/m/Y" }}</p>
+                    <p><strong>Límite:</strong> ${{ latest_billing.billing_limit|floatformat:2 }}</p>
+                    <p><strong>Facturado:</strong> ${{ total_income|floatformat:2 }}</p>
+                </div>
+                <div class="col-md-6">
+                    <div class="progress mb-2">
+                        <div class="progress-bar bg-info" role="progressbar" style="width: {{ billing_percentage }}%" 
+                             aria-valuenow="{{ billing_percentage }}" aria-valuemin="0" aria-valuemax="100">
+                            {{ billing_percentage|floatformat:1 }}%
+                        </div>
+                    </div>
+                    <p class="text-muted small">Porcentaje del límite utilizado</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-warning">Configurar Límite de Facturación</h6>
+        </div>
+        <div class="card-body">
+            <p>No hay configurado un período de facturación. Configure el límite de monotributo para ver el progreso.</p>
+            <a href="{% url 'billing_period_create' %}" class="btn btn-info">
+                <i class="fas fa-cog"></i> Configurar Período
+            </a>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Últimos Ingresos -->
+    <div class="row">
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Últimos Ingresos</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_repairs %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Cliente</th>
+                                    <th>Monto</th>
+                                    <th>Estado</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for repair_finance in recent_repairs %}
+                                <tr>
+                                    <td>{{ repair_finance.repair.device.customer.name }} {{ repair_finance.repair.device.customer.last_name }}</td>
+                                    <td>${{ repair_finance.amount_charged|floatformat:2 }}</td>
+                                    <td>
+                                        {% if repair_finance.is_paid %}
+                                        <span class="badge badge-success">Pagado</span>
+                                        {% else %}
+                                        <span class="badge badge-warning">Pendiente</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No hay ingresos registrados.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Últimos Gastos -->
+        <div class="col-xl-6 col-lg-6">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-danger">Últimos Gastos</h6>
+                </div>
+                <div class="card-body">
+                    {% if recent_expenses %}
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Categoría</th>
+                                    <th>Monto</th>
+                                    <th>Fecha</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for expense in recent_expenses %}
+                                <tr>
+                                    <td>{{ expense.category.name }}</td>
+                                    <td>${{ expense.amount|floatformat:2 }}</td>
+                                    <td>{{ expense.expense_date|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted">No hay gastos registrados.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Editar Reparación #{{ repair.id }}</h1>
+        <a href="{% url 'repair_detail' repair_id=repair.id %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Actualizar Información de la Reparación</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label>Diagnóstico</label>
+                    <textarea class="form-control" name="diagnosis" rows="4">{{ repair.diagnosis|default:"" }}</textarea>
+                    <small class="form-text text-muted">Describa el diagnóstico realizado al equipo</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Solución Propuesta</label>
+                    <textarea class="form-control" name="proposed_solution" rows="4">{{ repair.proposed_solution|default:"" }}</textarea>
+                    <small class="form-text text-muted">Describa la solución propuesta para el problema</small>
+                </div>
+
+                <div class="form-group">
+                    <label>Procedimiento Realizado</label>
+                    <textarea class="form-control" name="performed_procedure" rows="6">{{ repair.performed_procedure|default:"" }}</textarea>
+                    <small class="form-text text-muted">Describa detalladamente el procedimiento realizado para reparar el equipo</small>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

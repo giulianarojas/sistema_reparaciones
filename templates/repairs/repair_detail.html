@@ -1,0 +1,185 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reparación #{{ repair.id }}</h1>
+        <div>
+            <a href="{% url 'repair_list' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+                <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+            </a>
+            <a href="{% url 'repair_update' repair_id=repair.id %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+                <i class="fas fa-edit fa-sm text-white-50"></i> Editar
+            </a>
+        </div>
+    </div>
+
+    <!-- Información del Cliente y Equipo -->
+    <div class="row">
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Cliente</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Nombre:</strong> {{ repair.device.customer.name }} {{ repair.device.customer.last_name }}</p>
+                    <!--<p><strong>DNI:</strong> {{ repair.device.customer.dni }}</p>-->
+                    <p><strong>Teléfono:</strong> {{ repair.device.customer.phone_number }}</p>
+                    <p><strong>Email:</strong> {{ repair.device.customer.email }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6 col-md-6 mb-4">
+            <div class="card shadow mb-4">
+                <div class="card-header py-3">
+                    <h6 class="m-0 font-weight-bold text-primary">Equipo</h6>
+                </div>
+                <div class="card-body">
+                    <p><strong>Tipo:</strong> {{ repair.device.device_type.name }}</p>
+                    <p><strong>Marca:</strong> {{ repair.device.brand.name }}</p>
+                    <p><strong>Modelo:</strong> {{ repair.device.model|default:"No especificado" }}</p>
+                    <p><strong>Serial:</strong> {{ repair.device.serial_number|default:"No especificado" }}</p>
+                    {% if repair.device.reception_notes %}
+                    <p><strong>Notas de Recepción:</strong> {{ repair.device.reception_notes }}</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Estado de la Reparación -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Estado de la Reparación</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Estado Actual:</strong> 
+                        <span class="badge badge-{% if repair.status == 'completed' or repair.status == 'delivered' %}success{% elif repair.status == 'in_progress' %}primary{% elif repair.status == 'received' %}info{% elif repair.status == 'waiting_parts' %}warning{% else %}secondary{% endif %}">
+                            {{ repair.get_status_display }}
+                        </span>
+                    </p>
+                    <p><strong>Fecha de Ingreso:</strong> {{ repair.entry_date|date:"d/m/Y H:i" }}</p>
+                    {% if repair.delivery_date %}
+                    <p><strong>Fecha de Entrega:</strong> {{ repair.delivery_date|date:"d/m/Y H:i" }}</p>
+                    {% endif %}
+                </div>
+                <div class="col-md-6">
+                    <form method="POST" action="{% url 'repair_update_status' repair_id=repair.id %}">
+                        {% csrf_token %}
+                        <input type="hidden" name="previous_status" value="{{ repair.status }}">
+                        <div class="form-group">
+                            <label>Cambiar Estado:</label>
+                            <select class="form-control" name="status">
+                                {% for value, label in status_choices %}
+                                <option value="{{ value }}" {% if value == repair.status %}selected{% endif %}>{{ label }}</option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="fas fa-sync"></i> Actualizar Estado
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Detalles del Problema -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Detalles del Problema</h6>
+        </div>
+        <div class="card-body">
+            <p><strong>Categoría:</strong> {{ repair.problem_category.name }}</p>
+            <p><strong>Problema Reportado:</strong></p>
+            <p>{{ repair.reported_problem }}</p>
+            
+            {% if repair.diagnosis %}
+            <hr>
+            <p><strong>Diagnóstico:</strong></p>
+            <p>{{ repair.diagnosis }}</p>
+            {% endif %}
+            
+            {% if repair.proposed_solution %}
+            <hr>
+            <p><strong>Solución Propuesta:</strong></p>
+            <p>{{ repair.proposed_solution }}</p>
+            {% endif %}
+            
+            {% if repair.performed_procedure %}
+            <hr>
+            <p><strong>Procedimiento Realizado:</strong></p>
+            <p>{{ repair.performed_procedure }}</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Información Financiera -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información Financiera</h6>
+        </div>
+        <div class="card-body">
+            {% if repair_finance %}
+            <p><strong>Monto Cobrado:</strong> ${{ repair_finance.amount_charged }}</p>
+            <p><strong>Estado de Pago:</strong> 
+                {% if repair_finance.is_paid %}
+                <span class="badge badge-success">Pagado</span>
+                {% else %}
+                <span class="badge badge-warning">Pendiente</span>
+                {% endif %}
+            </p>
+            {% if repair_finance.payment_date %}
+            <p><strong>Fecha de Pago:</strong> {{ repair_finance.payment_date|date:"d/m/Y" }}</p>
+            {% endif %}
+            <a href="{% url 'repair_payment' repair_id=repair.id %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-edit"></i> Editar Pago
+            </a>
+            {% else %}
+            <p class="text-muted">No se ha registrado información financiera para esta reparación.</p>
+            <a href="{% url 'repair_payment' repair_id=repair.id %}" class="btn btn-sm btn-primary">
+                <i class="fas fa-dollar-sign"></i> Registrar Pago
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Sugerencias de Reparaciones Similares -->
+    {% if similar_repairs %}
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-info">Sugerencias de Reparaciones Anteriores</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Equipo</th>
+                            <th>Problema</th>
+                            <th>Procedimiento Realizado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for similar in similar_repairs %}
+                        <tr>
+                            <td>{{ similar.device.brand }} {{ similar.device.model }}</td>
+                            <td>{{ similar.problem_category.name }}</td>
+                            <td>{{ similar.performed_procedure|truncatewords:20 }}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

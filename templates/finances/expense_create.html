@@ -1,0 +1,64 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Nuevo Gasto</h1>
+        <a href="{% url 'expense_list' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Registrar Nuevo Gasto</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Categoría</label>
+                            <input type="text" class="form-control" name="category_name" 
+                                   list="categories_list" placeholder="Escriba o seleccione una categoría..." required>
+                            <datalist id="categories_list">
+                                {% for category in categories %}
+                                <option value="{{ category.name }}">
+                                {% endfor %}
+                            </datalist>
+                            <small class="form-text text-muted">Seleccione una existente o escriba una nueva</small>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Monto</label>
+                            <input type="number" step="0.01" class="form-control" name="amount" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea class="form-control" name="description" rows="3"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha del Gasto</label>
+                    <input type="date" class="form-control" name="expense_date" required>
+                </div>
+
+                <button type="submit" class="btn btn-warning">
+                    <i class="fas fa-save"></i> Guardar Gasto
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

@@ -1,17 +1,10 @@
-from rest_framework.routers import DefaultRouter
+from django.urls import path
+from . import views
 
-from .views import (
-    BillingPeriodViewSet,
-    RepairFinanceViewSet,
-    ExpenseCategoryViewSet,
-    ExpenseViewSet
-)
-
-router = DefaultRouter()
-
-router.register(r"billing-period", BillingPeriodViewSet)
-router.register(r"repair-finance", RepairFinanceViewSet)
-router.register(r"expense-category", ExpenseCategoryViewSet)
-router.register(r"expense", ExpenseViewSet)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('', views.finance_dashboard, name='finance_dashboard'),
+    path('gastos/', views.expense_list, name='expense_list'),
+    path('gastos/nuevo/', views.expense_create, name='expense_create'),
+    path('billing-period/', views.billing_period_create, name='billing_period_create'),
+    path('exportar-csv/', views.export_finances_csv, name='export_finances_csv'),
+]

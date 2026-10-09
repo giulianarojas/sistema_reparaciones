@@ -1,8 +1,9 @@
-from rest_framework.routers import DefaultRouter
-from .views import CustomerViewSet
+from django.urls import path
+from . import views
 
-router = DefaultRouter()
-
-router.register(r"customers", CustomerViewSet)
-
-urlpatterns = router.urls
+urlpatterns = [
+    path('', views.customer_list, name='customer_list'),
+    path('nuevo/', views.customer_create, name='customer_create'),
+    path('<int:customer_id>/', views.customer_detail, name='customer_detail'),
+    path('crear-ajax/', views.create_customer_ajax, name='create_customer_ajax'),
+]

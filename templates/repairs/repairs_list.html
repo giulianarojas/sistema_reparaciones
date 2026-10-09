@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Reparaciones</h1>
+        <a href="{% url 'repair_create' %}" class="d-none d-sm-inline-block btn btn-sm btn-primary shadow-sm">
+            <i class="fas fa-plus fa-sm text-white-50"></i> Nueva Reparación
+        </a>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Filtros</h6>
+        </div>
+        <div class="card-body">
+            <form method="GET" class="form-inline">
+                <div class="form-group mr-2">
+                    <input type="text" class="form-control" name="search" placeholder="Buscar..." value="{{ search_query }}">
+                </div>
+                <div class="form-group mr-2">
+                    <select class="form-control" name="status">
+                        <option value="">Todos los estados</option>
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if value == status_filter %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <button type="submit" class="btn btn-primary">Filtrar</button>
+                <a href="{% url 'repair_list' %}" class="btn btn-secondary">Limpiar</a>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Reparaciones -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Lista de Reparaciones</h6>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Cliente</th>
+                            <th>Equipo</th>
+                            <th>Problema</th>
+                            <th>Estado</th>
+                            <th>Fecha</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for repair in repairs %}
+                        <tr>
+                            <td>#{{ repair.id }}</td>
+                            <td>{{ repair.device.customer.name }} {{ repair.device.customer.last_name }}</td>
+                            <td>{{ repair.device.brand }} {{ repair.device.model }}</td>
+                            <td>{{ repair.problem_category.name }}</td>
+                            <td>
+                                <span class="badge badge-{% if repair.status == 'completed' or repair.status == 'delivered' %}success{% elif repair.status == 'in_progress' %}primary{% elif repair.status == 'received' %}info{% elif repair.status == 'waiting_parts' %}warning{% else %}secondary{% endif %}">
+                                    {{ repair.get_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ repair.created_at|date:"d/m/Y" }}</td>
+                            <td>
+                                <a href="{% url 'repair_detail' repair_id=repair.id %}" class="btn btn-sm btn-info">
+                                    <i class="fas fa-eye"></i> Ver
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">
+                                No hay reparaciones cargadas
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

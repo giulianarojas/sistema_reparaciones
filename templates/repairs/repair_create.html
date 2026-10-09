@@ -1,0 +1,360 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Nueva Reparación</h1>
+        <a href="{% url 'repair_list' %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Ingresar Nueva Reparación</h6>
+        </div>
+        <div class="card-body">
+            {% if error %}
+            <div class="alert alert-danger">
+                {{ error }}
+            </div>
+            {% endif %}
+            <form method="POST" id="repair_form">
+                {% csrf_token %}
+
+                <!-- Selección de Cliente -->
+                <div class="form-group">
+                    <label>Cliente <span class="text-danger">*</span></label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" name="customer_name" id="customer_input" 
+                               list="customers_list" placeholder="Escriba el nombre del cliente..." required
+                               oninput="checkCustomerSelection()">
+                        <datalist id="customers_list">
+                            {% for customer in customers %}
+                            <option value="{{ customer.name }} {{ customer.last_name }}" data-id="{{ customer.id }}">
+                            {% endfor %}
+                        </datalist>
+                        <div class="input-group-append">
+                            <button type="button" class="btn btn-outline-primary" onclick="openNewCustomerModal()">
+                                <i class="fas fa-plus"></i> Nuevo Cliente
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" name="customer_id" id="customer_id" value="">
+                    <small class="form-text text-muted">Seleccione un cliente existente o cree uno nuevo</small>
+                </div>
+
+                <!-- Datos del Equipo -->
+                <div class="card bg-light mb-3 p-3">
+                    <h6 class="font-weight-bold">Datos del Equipo</h6>
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Tipo de Equipo <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="device_type" id="device_type_input" 
+                                       list="device_types_list" placeholder="Escriba o seleccione..." required>
+                                <datalist id="device_types_list">
+                                    {% for device_type in device_types %}
+                                    <option value="{{ device_type.name }}">
+                                    {% endfor %}
+                                </datalist>
+                                <small class="form-text text-muted">Seleccione uno existente o escriba uno nuevo</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Marca <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" name="brand" id="brand_input" 
+                                       list="brands_list" placeholder="Escriba o seleccione..." required>
+                                <datalist id="brands_list">
+                                    {% for brand in brands %}
+                                    <option value="{{ brand.name }}">
+                                    {% endfor %}
+                                </datalist>
+                                <small class="form-text text-muted">Seleccione una existente o escriba una nueva</small>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group">
+                                <label>Modelo</label>
+                                <input type="text" class="form-control" name="device_model">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Número de Serie</label>
+                                <input type="text" class="form-control" name="device_serial">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label>Notas de Recepción</label>
+                                <textarea class="form-control" name="reception_notes" rows="2"></textarea>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Problema Reportado -->
+                <div class="form-group">
+                    <label>Categoría del Problema <span class="text-danger">*</span></label>
+                    <input type="text" class="form-control" name="problem_category" id="problem_category_input" 
+                           placeholder="Escriba el problema (ej: no enciende, sin video...)" 
+                           list="problem_categories_list" oninput="getSuggestions()" required>
+                    <datalist id="problem_categories_list">
+                        {% for category in problem_categories %}
+                        <option value="{{ category.name }}">
+                        {% endfor %}
+                    </datalist>
+                    <small class="form-text text-muted">Escriba para ver sugerencias de reparaciones anteriores</small>
+                    <div id="suggestions" class="mt-2"></div>
+                </div>
+
+                <div class="form-group">
+                    <label>Descripción del Problema <span class="text-danger">*</span></label>
+                    <textarea class="form-control" name="reported_problem" rows="3" required></textarea>
+                </div>
+
+                <!-- Estado Inicial -->
+                <div class="form-group">
+                    <label>Estado Inicial</label>
+                    <select class="form-control" name="status">
+                        {% for value, label in status_choices %}
+                        <option value="{{ value }}" {% if value == 'received' %}selected{% endif %}>{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Guardar Reparación
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<!-- Modal para crear nuevo cliente -->
+<div class="modal fade" id="newCustomerModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Crear Nuevo Cliente</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="new_customer_form">
+                    <div class="form-group">
+                        <label>Nombre <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Apellido <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="last_name" required>
+                    </div>
+                    <div class="form-group">
+                        <label>DNI <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" name="dni" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" class="form-control" name="phone_number">
+                    </div>
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" class="form-control" name="email">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss=" modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" onclick="createNewCustomer()">Crear Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+function checkCustomerSelection() {
+    const input = document.getElementById('customer_input');
+    const datalist = document.getElementById('customers_list');
+    const hiddenInput = document.getElementById('customer_id');
+    const options = datalist.options;
+    
+    let found = false;
+    for (let i = 0; i < options.length; i++) {
+        if (options[i].value === input.value) {
+            hiddenInput.value = options[i].getAttribute('data-id');
+            found = true;
+            break;
+        }
+    }
+    
+    if (!found) {
+        hiddenInput.value = '';
+    }
+}
+
+function openNewCustomerModal() {
+    $('#newCustomerModal').modal('show');
+}
+
+function createNewCustomer() {
+    const form = document.getElementById('new_customer_form');
+    const formData = new FormData(form);
+    
+    fetch('{% url "create_customer_ajax" %}', {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': getCookie('csrftoken'),
+        },
+        body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Agregar el nuevo cliente al datalist
+            const datalist = document.getElementById('customers_list');
+            const option = document.createElement('option');
+            option.value = `${data.customer.name} ${data.customer.last_name}`;
+            option.setAttribute('data-id', data.customer.id);
+            datalist.appendChild(option);
+            
+            // Seleccionar el nuevo cliente
+            document.getElementById('customer_input').value = `${data.customer.name} ${data.customer.last_name}`;
+            document.getElementById('customer_id').value = data.customer.id;
+            
+            // Cerrar modal y limpiar formulario
+            $('#newCustomerModal').modal('hide');
+            form.reset();
+        } else {
+            alert('Error: ' + data.error);
+        }
+    })
+    .catch(error => {
+        alert('Error al crear el cliente: ' + error);
+    });
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (let i = 0; i < cookies.length; i++) {
+            const cookie = cookies[i].trim();
+            if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                break;
+            }
+        }
+    }
+    return cookieValue;
+}
+
+function getSuggestions() {
+    const query = document.getElementById('problem_category_input').value;
+    const deviceType = document.getElementById('device_type_input').value;
+    
+    if (query.length < 2) {
+        document.getElementById('suggestions').innerHTML = '';
+        return;
+    }
+    
+    fetch(`{% url 'repair_suggestions' %}?q=${query}&device_type=${encodeURIComponent(deviceType)}`)
+        .then(response => response.json())
+        .then(data => {
+            const suggestionsDiv = document.getElementById('suggestions');
+            let html = '';
+            
+            // Sección 1: Coincidencias del mismo tipo de equipo
+            if (data.same_device_type.length > 0) {
+                html += '<div class="alert alert-info"><strong>Coincidencias para ' + data.device_type_filter + ':</strong><div class="mt-2">';
+                data.same_device_type.forEach(s => {
+                    html += `
+                        <div class="card mb-2" style="border-left: 4px solid #1cc88a;">
+                            <div class="card-body py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${s.brand} ${s.model}</strong>
+                                        <small class="text-muted ml-2">(${s.created_at})</small>
+                                        <br>
+                                        <small class="text-muted">Cliente: ${s.customer}</small>
+                                        <br>
+                                        <span class="badge badge-info">${s.status}</span>
+                                        <span class="badge badge-secondary">${s.problem_category}</span>
+                                    </div>
+                                    <a href="/reparaciones/${s.repair_id}/" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Ver reparación
+                                    </a>
+                                </div>
+                                ${s.diagnosis ? `<div class="mt-1"><small><strong>Diagnóstico:</strong> ${s.diagnosis}</small></div>` : ''}
+                                ${s.performed_procedure ? `<div class="mt-1"><small><strong>Procedimiento:</strong> ${s.performed_procedure}</small></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            // Sección 2: Otras reparaciones similares (diferentes tipos de equipo)
+            if (data.other_device_types.length > 0) {
+                html += '<div class="alert alert-warning"><strong>Otras reparaciones similares:</strong><div class="mt-2">';
+                data.other_device_types.forEach(s => {
+                    html += `
+                        <div class="card mb-2" style="border-left: 4px solid #f6c23e;">
+                            <div class="card-body py-2 px-3">
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <strong>${s.device_type} ${s.brand} ${s.model}</strong>
+                                        <small class="text-muted ml-2">(${s.created_at})</small>
+                                        <br>
+                                        <small class="text-muted">Cliente: ${s.customer}</small>
+                                        <br>
+                                        <span class="badge badge-info">${s.status}</span>
+                                        <span class="badge badge-secondary">${s.problem_category}</span>
+                                    </div>
+                                    <a href="/reparaciones/${s.repair_id}/" target="_blank" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Ver reparación
+                                    </a>
+                                </div>
+                                ${s.diagnosis ? `<div class="mt-1"><small><strong>Diagnóstico:</strong> ${s.diagnosis}</small></div>` : ''}
+                                ${s.performed_procedure ? `<div class="mt-1"><small><strong>Procedimiento:</strong> ${s.performed_procedure}</small></div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                });
+                html += '</div></div>';
+            }
+            
+            if (html) {
+                suggestionsDiv.innerHTML = html;
+            } else {
+                suggestionsDiv.innerHTML = '';
+            }
+        })
+        .catch(error => {
+            console.error('Error al obtener sugerencias:', error);
+        });
+}
+
+// Validar formulario antes de enviar
+document.getElementById('repair_form').addEventListener('submit', function(e) {
+    const customerName = document.getElementById('customer_input').value;
+    const customerId = document.getElementById('customer_id').value;
+    
+    if (!customerName.trim()) {
+        e.preventDefault();
+        alert('Debe ingresar un cliente');
+        return false;
+    }
+});
+</script>
+
+{% endblock %}

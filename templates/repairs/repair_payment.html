@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class="container-fluid">
+
+    <!-- Page Heading -->
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Registrar Pago - Reparación #{{ repair.id }}</h1>
+        <a href="{% url 'repair_detail' repair_id=repair.id %}" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
+            <i class="fas fa-arrow-left fa-sm text-white-50"></i> Volver
+        </a>
+    </div>
+
+    <!-- Información de la Reparación -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">Información de la Reparación</h6>
+        </div>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-6">
+                    <p><strong>Cliente:</strong> {{ repair.device.customer.name }} {{ repair.device.customer.last_name }}</p>
+                    <p><strong>Equipo:</strong> {{ repair.device.brand }} {{ repair.device.model }}</p>
+                    <p><strong>Problema:</strong> {{ repair.problem_category.name }}</p>
+                </div>
+                <div class="col-md-6">
+                    <p><strong>Estado:</strong> {{ repair.get_status_display }}</p>
+                    <p><strong>Fecha de Ingreso:</strong> {{ repair.entry_date|date:"d/m/Y" }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Formulario de Pago -->
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-success">Registrar Pago</h6>
+        </div>
+        <div class="card-body">
+            <form method="POST">
+                {% csrf_token %}
+
+                <div class="form-group">
+                    <label>Monto a Cobrar ($)</label>
+                    <input type="number" step="0.01" class="form-control" name="amount_charged" 
+                           value="{{ repair_finance.amount_charged|default:'' }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label>Fecha de Pago</label>
+                    <input type="date" class="form-control" name="payment_date" 
+                           value="{% if repair_finance.payment_date %}{{ repair_finance.payment_date|date:'Y-m-d' }}{% endif %}">
+                    <small class="form-text text-muted">Deje en blanco si el pago aún no se realizó</small>
+                </div>
+
+                <div class="form-group">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" name="is_paid" id="is_paid" 
+                               {% if repair_finance.is_paid %}checked{% endif %}>
+                        <label class="custom-control-label" for="is_paid">Pago realizado</label>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Guardar Pago
+                </button>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}
